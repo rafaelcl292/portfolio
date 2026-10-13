@@ -1,0 +1,23 @@
+body {
+  font: 14px / 1.6 sans-serif;
+  max-width: 780px;
+  padding: 24px;
+  margin: 24px auto;
+  color: #252c29;
+}
+pre {
+  font: inherit;
+  white-space: pre-wrap;
+}
+a {
+  color: #304d3b;
+}
+@media print {
+  nav {
+    display: none;
+  }
+  body {
+    margin: 0;
+    padding: 0;
+  }
+}

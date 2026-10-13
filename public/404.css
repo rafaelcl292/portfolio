@@ -1,0 +1,11 @@
+body {
+  background: #141715;
+  color: #efeee7;
+  font: 18px / 1.6 sans-serif;
+  max-width: 600px;
+  margin: 15vh auto;
+  padding: 24px;
+}
+a {
+  color: #c2dc99;
+}
