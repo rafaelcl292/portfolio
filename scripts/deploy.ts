@@ -76,17 +76,35 @@ printf '\\nDeployed ${revision}; previous release: %s\\n' "$previous"
     "/resume/rafael-leventhal-resume.pdf",
     "/resume/rafael-leventhal-curriculo.pdf",
   ]) {
-    const response = await fetch(`https://rafaelcl.com${path}`, {
-      signal: AbortSignal.timeout(15000),
-    });
-    if (!response.ok)
-      throw new Error(
-        `Public verification failed: ${path} ${response.status}. Origin verified; inspect DNS before rollback.`,
+    const url = `https://rafaelcl.com${path}`;
+    let remote: Buffer;
+    try {
+      const response = await fetch(url, { signal: AbortSignal.timeout(15000) });
+      if (!response.ok)
+        throw new Error(
+          `Public verification failed: ${path} ${response.status}`,
+        );
+      remote = Buffer.from(await response.arrayBuffer());
+    } catch (error) {
+      // Newly created records may remain negative-cached by a local resolver.
+      // Resolve publicly over HTTPS; never bypass TLS or hard-code an origin IP.
+      if (
+        !(error instanceof Error) ||
+        !("code" in error) ||
+        !["ENOTFOUND", "EAI_AGAIN"].includes(String(error.code))
+      )
+        throw error;
+      console.log(
+        `Local DNS has no answer; verifying ${path} through Cloudflare DNS over HTTPS.`,
       );
+      remote = (
+        await $`curl --doh-url https://cloudflare-dns.com/dns-query --fail --silent --show-error --max-time 30 ${url}`.quiet()
+      ).stdout;
+    }
     const local = await Bun.file(
       `dist${path === "/" ? "/index.html" : path}`,
     ).arrayBuffer();
-    if (!Buffer.from(local).equals(Buffer.from(await response.arrayBuffer())))
+    if (!Buffer.from(local).equals(remote))
       throw new Error(`Public content mismatch: ${path}`);
   }
   console.log("Public HTTPS page and both PDFs match the local release.");

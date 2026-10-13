@@ -32,6 +32,10 @@ their process IDs. A failed origin check restores the previous symlink. It then
 compares the public page and both PDFs to local output. Public-only failures are
 reported for investigation; they do not discard an otherwise healthy origin.
 
+If the local resolver still caches an absent record, public verification falls back
+to Cloudflare DNS over HTTPS through curl, with normal hostname and TLS validation.
+This does not change the workstation's DNS or Tailscale configuration.
+
 `PORTFOLIO_SSH_HOST` can select another configured alias. Keep credentials out of
 Git. Prior releases remain under `/var/www/portfolio/releases/`; review disk use
 occasionally and retain at least the current and previous releases.
