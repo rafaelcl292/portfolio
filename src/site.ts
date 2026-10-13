@@ -37,7 +37,6 @@ export function renderSite(css: string, js: string) {
     </header>
     <main id="main">
       <section class="hero" aria-labelledby="intro">
-        <div class="eyebrow"><span class="small-dot" aria-hidden="true"></span> Full-stack developer · Backend focused</div>
         <h1 id="intro">Rafael Coca<br><span class="serif">Leventhal</span><span class="name-dot">.</span></h1>
         <div class="hero-bottom">
           <p>I build software at <a href="#experience">BTG Pactual</a>.<br>Outside work, I make things in Rust, Zig,<br class="desktop-break"> and whatever the project calls for.</p>
