@@ -56,7 +56,9 @@ async function pdf(resume: Resume, language: string, output: string) {
     .fontSize(8.4)
     .text("rafaelcl.com", 42, doc.y, { link: profile.url, continued: true })
     .text("  |  ", { link: null, continued: true })
-    .text("github.com/rafaelcl292", { link: profile.github });
+    .text("github.com/rafaelcl292", { link: profile.github, continued: true })
+    .text("  |  ", { link: null, continued: true })
+    .text("linkedin.com/in/rafael-leventhal", { link: profile.linkedin });
   gap(10);
   text(resume.summary);
   heading(resume.headings.experience);
@@ -121,7 +123,7 @@ export async function buildResumes() {
       profile.name,
       resume.title,
       `${resume.location} | ${profile.email}`,
-      `${profile.url} | ${profile.github}`,
+      `${profile.url} | ${profile.github} | ${profile.linkedin}`,
       "",
       resume.summary,
       "",

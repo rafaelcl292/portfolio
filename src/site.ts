@@ -71,6 +71,7 @@ export function renderSite(css: string, js: string, themeJs: string) {
           <div class="actions">
             <a class="button primary" href="${resume}">Download résumé ${down}</a>
             <a class="button" href="${profile.github}">GitHub ${out}</a>
+            <a class="button" href="${profile.linkedin}">LinkedIn ${out}</a>
             <a class="button" href="mailto:${profile.email}">Email</a>
           </div>
           <dl class="hero-facts">
@@ -165,7 +166,7 @@ export function renderSite(css: string, js: string, themeJs: string) {
         <p class="label status"><span class="status-dot" aria-hidden="true"></span>Open to international opportunities</p>
         <h2 id="contact-title">Let’s talk.</h2>
         <a class="contact-email" href="mailto:${profile.email}">${profile.email}</a>
-        <ul class="contact-links"><li><a class="link" href="${profile.github}">GitHub ${out}</a></li><li><a class="link" href="${resume}">Résumé (EN) ${down}</a></li><li><a class="link" href="/resume/rafael-leventhal-curriculo.pdf" lang="pt-BR">Currículo (PT) ${down}</a></li></ul>
+        <ul class="contact-links"><li><a class="link" href="${profile.github}">GitHub ${out}</a></li><li><a class="link" href="${profile.linkedin}">LinkedIn ${out}</a></li><li><a class="link" href="${resume}">Résumé (EN) ${down}</a></li><li><a class="link" href="/resume/rafael-leventhal-curriculo.pdf" lang="pt-BR">Currículo (PT) ${down}</a></li></ul>
       </section>
     </main>
     <footer class="footer"><span>© ${new Date().getFullYear()} Rafael Coca Leventhal</span><span class="footer-note">Static HTML. No tracking.</span><a class="footer-chess" href="${profile.chess}">rltakes on Chess.com</a><a class="link" href="#">Back to top ${up}</a></footer>

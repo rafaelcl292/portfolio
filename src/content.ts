@@ -2,6 +2,7 @@ export const profile = {
   name: "Rafael Coca Leventhal",
   email: "rafael.cleventhal@gmail.com",
   github: "https://github.com/rafaelcl292",
+  linkedin: "https://www.linkedin.com/in/rafael-leventhal",
   chess: "https://www.chess.com/member/rltakes",
   url: "https://rafaelcl.com",
   location: "São Paulo, Brazil",
