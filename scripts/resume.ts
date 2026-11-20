@@ -24,7 +24,7 @@ async function pdf(resume: Resume, language: string, output: string) {
     doc.on("error", reject);
   });
   const width = doc.page.width - 84;
-  const text = (value: string, size = 9.1, bold = false, color = "#252c29") => {
+  const text = (value: string, size = 9.1, bold = false, color = "#1b1713") => {
     doc
       .font(bold ? "ResumeBold" : "ResumeRegular")
       .fontSize(size)
@@ -36,19 +36,19 @@ async function pdf(resume: Resume, language: string, output: string) {
   };
   const heading = (label: string) => {
     gap(11);
-    text(label.toUpperCase(), 9, true, "#304d3b");
+    text(label.toUpperCase(), 9, true, "#85560f");
     gap(3);
     doc
       .moveTo(42, doc.y)
       .lineTo(doc.page.width - 42, doc.y)
-      .strokeColor("#c8cfcb")
+      .strokeColor("#d3c8b2")
       .lineWidth(0.5)
       .stroke();
     gap(7);
   };
   text(profile.name, 23, true);
   gap(4);
-  text(resume.title, 10.5, false, "#304d3b");
+  text(resume.title, 10.5, false, "#85560f");
   gap(6);
   text(`${resume.location}  |  ${profile.email}`, 8.4);
   gap(2);
@@ -67,7 +67,7 @@ async function pdf(resume: Resume, language: string, output: string) {
     doc
       .font("ResumeRegular")
       .fontSize(8.1)
-      .fillColor("#515a55")
+      .fillColor("#62594b")
       .text(job.dates, 42, y + 1, { width, align: "right" });
     doc.y = after + 3;
     for (const bullet of job.bullets) text(`•  ${bullet}`);
@@ -78,8 +78,11 @@ async function pdf(resume: Resume, language: string, output: string) {
     doc
       .font("ResumeBold")
       .fontSize(9.3)
-      .fillColor("#252c29")
-      .text(project.name, 42, doc.y, { link: project.url, continued: true })
+      .fillColor("#1b1713")
+      .text(project.name, 42, doc.y, {
+        link: project.url ?? null,
+        continued: true,
+      })
       .font("ResumeRegular")
       .fontSize(8.3)
       .text(`  |  ${project.stack}`, { link: null });
@@ -132,7 +135,7 @@ export async function buildResumes() {
       ...resume.projects.flatMap((p) => [
         `${p.name} | ${p.stack}`,
         p.text,
-        p.url,
+        ...(p.url ? [p.url] : []),
         "",
       ]),
       resume.headings.skills.toUpperCase(),

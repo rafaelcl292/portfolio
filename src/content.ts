@@ -2,39 +2,52 @@ export const profile = {
   name: "Rafael Coca Leventhal",
   email: "rafael.cleventhal@gmail.com",
   github: "https://github.com/rafaelcl292",
+  chess: "https://www.chess.com/member/rltakes",
   url: "https://rafaelcl.com",
   location: "São Paulo, Brazil",
 };
 
-export const projects = [
-  {
-    name: "CheSSH",
-    category: "Multiplayer over SSH",
-    stack: "Rust · Tokio · Ratatui",
-    description:
-      "A multiplayer chess server you play from your terminal. Matchmaking, persistent game history, and games against Zander — all over SSH.",
-    url: `${profile.github}/chessh`,
-    link: "Source code",
-  },
-  {
-    name: "Local Cinema",
-    category: "Shared movie screenings",
-    stack: "Rust · Axum · React · TypeScript",
-    description:
-      "A self-hosted cinema with synchronized playback, HLS video preparation, subtitles, and per-user access. Built with a Rust backend and a React frontend.",
-    url: "https://cinema.rafaelcl.com",
-    link: "Visit site · sign-in required",
-  },
-  {
-    name: "Zander",
-    category: "A native Zig port of Stockfish",
-    stack: "Zig · NNUE · UCI",
-    description:
-      "A chess engine with neural network evaluation and parallel search. Differential tests compare the Zig implementation with a pinned Stockfish reference.",
-    url: `${profile.github}/zander`,
-    link: "Source code",
-  },
-];
+export const chessh = {
+  name: "CheSSH",
+  category: "Multiplayer chess over SSH",
+  stack: ["Rust", "Tokio", "Ratatui"],
+  description:
+    "A multiplayer chess server you play from your terminal. Matchmaking, persistent game history, and games against Zander — all over SSH.",
+  command: "ssh -p 2222 chess.rafaelcl.com",
+  host: "chess.rafaelcl.com",
+  facts: [
+    ["Play", "Multiplayer games with matchmaking"],
+    ["History", "Persistent game history"],
+    ["Engine", "UCI engine integration, with games against Zander"],
+    ["Interface", "Interactive terminal interface"],
+    ["Hosting", "Runs on Oracle Cloud"],
+  ],
+  url: `${profile.github}/chessh`,
+};
+
+export const zander = {
+  name: "Zander",
+  category: "A native Zig port of Stockfish",
+  stack: ["Zig", "NNUE", "UCI"],
+  description:
+    "A chess engine with neural network evaluation and parallel search. Differential tests compare the Zig implementation with a pinned Stockfish reference.",
+  facts: [
+    ["Evaluation", "Neural network (NNUE)"],
+    ["Search", "Parallel"],
+    ["Protocol", "UCI"],
+    ["Status", "In development"],
+  ],
+  url: `${profile.github}/zander`,
+};
+
+export const localCinema = {
+  name: "Local Cinema",
+  category: "Shared movie screenings",
+  stack: ["Rust", "Axum", "React", "TypeScript"],
+  description:
+    "A self-hosted cinema with synchronized playback, HLS video preparation, subtitles, and per-user access. Built with a Rust backend and a React frontend.",
+  note: "Private source",
+};
 
 export const earlierProjects = [
   {
@@ -77,7 +90,7 @@ export type Resume = {
     languages: string;
   };
   jobs: { company: string; title: string; dates: string; bullets: string[] }[];
-  projects: { name: string; stack: string; text: string; url: string }[];
+  projects: { name: string; stack: string; text: string; url?: string }[];
   skills: string[];
   education: string;
   languages: string;
@@ -135,7 +148,6 @@ export const resumes: Record<"en" | "pt", Resume> = {
         name: "Local Cinema",
         stack: "Rust, Axum, React, TypeScript",
         text: "Built a self-hosted cinema with synchronized screenings, HLS video preparation, subtitle workflows, and per-user access. Deployed on an Oracle Cloud ARM64 VM with Nginx and systemd.",
-        url: "https://cinema.rafaelcl.com",
       },
       {
         name: "CheSSH",
@@ -210,7 +222,6 @@ export const resumes: Record<"en" | "pt", Resume> = {
         name: "Local Cinema",
         stack: "Rust, Axum, React, TypeScript",
         text: "Cinema auto-hospedado com sessões sincronizadas, preparação de vídeo em HLS, legendas e permissões por usuário. Implantado em uma VM ARM64 na Oracle Cloud com Nginx e systemd.",
-        url: "https://cinema.rafaelcl.com",
       },
       {
         name: "CheSSH",
