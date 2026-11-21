@@ -1,201 +1,147 @@
-// The hero pawn: a turned Staunton pawn drawn as stacked, mirrored profiles.
-// Colours come from CSS custom properties (see `.pw-*` in style.css), so the
-// piece is boxwood on the dark theme and ebony on the light one.
+// The hero pawn, drawn the way a terminal would draw it: on a grid of
+// character cells, each one a block element. A cell is either one tone or two
+// tones split at an eighth (the lower, upper, left and right eighth blocks
+// that Unicode gives a TUI), so the lathe-turned outline stays crisp without
+// leaving the grid. Colours come from CSS custom properties (`.pw-*`).
 
-type Point = readonly [number, number];
-type Segment = readonly [Point, Point, Point];
+export const COLS = 32;
+export const ROWS = 29;
+const CW = 10;
+const CH = 20;
+const W = COLS * CW;
+const H = ROWS * CH;
+const CX = W / 2;
 
-const CENTRE = 200;
-const at = ([x, y]: Point) => `${x} ${y}`;
-const mirrored = ([x, y]: Point) => `${CENTRE * 2 - x} ${y}`;
-
-/**
- * Builds a closed, symmetric shape from its right-hand profile (top to bottom).
- * `bow` curves the bottom edge downwards, as seen from slightly above.
- */
-function turned(start: Point, segments: readonly Segment[], bow: number) {
-  let d = `M${at(start)}`;
-  let end = start;
-  for (const [a, b, c] of segments) {
-    d += `C${at(a)} ${at(b)} ${at(c)}`;
-    end = c;
-  }
-  d += `Q${CENTRE} ${end[1] + bow * 2} ${mirrored(end)}`;
-  for (let i = segments.length - 1; i >= 0; i--) {
-    const segment = segments[i];
-    if (!segment) continue;
-    const previous = segments[i - 1]?.[2] ?? start;
-    d += `C${mirrored(segment[1])} ${mirrored(segment[0])} ${mirrored(previous)}`;
-  }
-  return `${d}Z`;
+// The Staunton profile as a radius for every height, top to bottom.
+const HEAD = { y: 88, r: 88 };
+const arc = (t: number, power = 2) =>
+  Math.max(0, 1 - Math.abs(t) ** power) ** (1 / power);
+function radius(y: number) {
+  let r = 0;
+  // Collar: a full, rounded disc under the head.
+  if (y > 172 && y < 218) r = Math.max(r, 108 * arc((y - 195) / 23, 3));
+  // Body: a concave taper that flares towards the base.
+  if (y >= 205 && y <= 462) r = Math.max(r, 50 + 64 * ((y - 205) / 257) ** 2.2);
+  // Bead above the foot.
+  if (y > 450 && y < 486) r = Math.max(r, 116 + 14 * arc((y - 468) / 18));
+  // Foot: a bulging turned base that stands flat on the square.
+  if (y >= 482 && y <= H)
+    r = Math.max(r, 126 + 30 * arc((y - 540) / 60) ** 0.7);
+  return r;
 }
 
-const foot = turned(
-  [318, 498],
-  [
-    [
-      [344, 500],
-      [353, 513],
-      [353, 529],
-    ],
-    [
-      [353, 549],
-      [347, 566],
-      [339, 573],
-    ],
-  ],
-  9,
-);
-const bead = turned(
-  [316, 473],
-  [
-    [
-      [331, 473],
-      [335, 481],
-      [335, 487],
-    ],
-    [
-      [335, 494],
-      [331, 500],
-      [321, 501],
-    ],
-  ],
-  8,
-);
-const body = turned(
-  [245, 230],
-  [
-    [
-      [249, 330],
-      [266, 420],
-      [322, 476],
-    ],
-  ],
-  7,
-);
-const fillet = turned(
-  [261, 219],
-  [
-    [
-      [268, 222],
-      [268, 232],
-      [257, 236],
-    ],
-  ],
-  3,
-);
-const collar = turned(
-  [236, 188],
-  [
-    [
-      [272, 188],
-      [297, 196],
-      [297, 207],
-    ],
-    [
-      [297, 217],
-      [289, 224],
-      [265, 224],
-    ],
-  ],
-  4,
-);
+// 0 empty, 1 lit, 2 shade, 3 deep. One light from the upper left.
+function tone(x: number, y: number) {
+  const dx = x - CX;
+  const dy = y - HEAD.y;
+  let nx: number;
+  let ny = 0;
+  if (dx * dx + dy * dy <= HEAD.r * HEAD.r && y < 174) {
+    nx = dx / HEAD.r;
+    ny = dy / HEAD.r;
+  } else {
+    const r = radius(y);
+    if (Math.abs(dx) > r) return 0;
+    nx = dx / r;
+    // Undercuts: below the collar and below the bead.
+    if ((y > 217 && y < 236) || (y > 484 && y < 494)) return nx > -0.55 ? 3 : 2;
+  }
+  const nz = Math.sqrt(Math.max(0, 1 - nx * nx - ny * ny));
+  const light = -0.62 * nx - 0.5 * ny + 0.6 * nz;
+  return light > 0.28 ? 1 : light > -0.3 ? 2 : 3;
+}
 
-const stops = (values: readonly (readonly [number, string])[]) =>
-  values
-    .map(([offset, name]) => `<stop offset="${offset}" class="${name}"/>`)
-    .join("");
-// "lit" and "dark" take the theme's highlight and deepest wood tones, so form
-// shading stays warm instead of greying the piece; anything else is literal.
-const tint = (values: readonly (readonly [number, string, number])[]) =>
-  values
-    .map(
-      ([offset, colour, opacity]) =>
-        `<stop offset="${offset}" ${colour === "lit" ? 'class="pw-high"' : colour === "dark" ? 'class="pw-deep"' : `stop-color="${colour}"`} stop-opacity="${opacity}"/>`,
-    )
-    .join("");
-const shaded = (d: string, overlay: string) =>
-  `<path d="${d}" fill="url(#pw-turned)"/><path d="${d}" fill="url(#${overlay})"/>`;
+const SX = 8;
+const SY = 16;
+type Rect = readonly [x: number, y: number, w: number, h: number];
+const rects: Rect[][] = [[], [], [], []];
 
-export const pawnSvg = `<svg class="pawn-svg" viewBox="0 20 400 572" width="400" height="572" aria-hidden="true" focusable="false">
-  <defs>
-    <linearGradient id="pw-turned" x1="0" x2="1" y1="0" y2="0">${stops([
-      [0, "pw-edge"],
-      [0.1, "pw-light"],
-      [0.27, "pw-high"],
-      [0.5, "pw-mid"],
-      [0.78, "pw-shade"],
-      [0.93, "pw-deep"],
-      [1, "pw-rim"],
-    ])}</linearGradient>
-    <radialGradient id="pw-ball" cx="0.5" cy="0.5" r="0.5" fx="0.33" fy="0.27">${stops(
-      [
-        [0, "pw-high"],
-        [0.22, "pw-light"],
-        [0.55, "pw-mid"],
-        [0.84, "pw-shade"],
-        [1, "pw-deep"],
-      ],
-    )}</radialGradient>
-    <radialGradient id="pw-ball-rim" cx="0.38" cy="0.34" r="0.74"><stop offset="0.86" class="pw-rim" stop-opacity="0"/><stop offset="1" class="pw-rim" stop-opacity="0.75"/></radialGradient>
-    <radialGradient id="pw-gloss">${tint([
-      [0, "#fff", 0.9],
-      [0.35, "#fff", 0.35],
-      [1, "#fff", 0],
-    ])}</radialGradient>
-    <radialGradient id="pw-sheen">${tint([
-      [0, "lit", 0.9],
-      [1, "lit", 0],
-    ])}</radialGradient>
-    <radialGradient id="pw-contact">${tint([
-      [0, "dark", 0.85],
-      [0.6, "dark", 0.45],
-      [1, "dark", 0],
-    ])}</radialGradient>
-    <linearGradient id="pw-ring" x1="0" x2="0" y1="0" y2="1">${tint([
-      [0, "lit", 0.45],
-      [0.32, "lit", 0],
-      [0.55, "dark", 0],
-      [0.8, "dark", 0.3],
-      [1, "dark", 0.7],
-    ])}</linearGradient>
-    <linearGradient id="pw-stem" x1="0" x2="0" y1="0" y2="1">${tint([
-      [0, "dark", 0.8],
-      [0.07, "dark", 0.52],
-      [0.15, "dark", 0.24],
-      [0.25, "dark", 0.07],
-      [0.36, "dark", 0],
-      [0.8, "dark", 0],
-      [0.92, "dark", 0.12],
-      [1, "dark", 0.4],
-    ])}</linearGradient>
-    <linearGradient id="pw-foot" x1="0" x2="0" y1="0" y2="1">${tint([
-      [0, "dark", 0.55],
-      [0.16, "lit", 0.4],
-      [0.45, "lit", 0],
-      [0.6, "dark", 0],
-      [0.85, "dark", 0.35],
-      [1, "dark", 0.75],
-    ])}</linearGradient>
-    <clipPath id="pw-collar-clip"><path d="${collar}"/></clipPath>
-  </defs>
-  ${shaded(foot, "pw-foot")}
-  <ellipse cx="116" cy="513" rx="40" ry="5" fill="url(#pw-sheen)" opacity="0.7"/>
-  ${shaded(bead, "pw-ring")}
-  ${shaded(body, "pw-stem")}
-  ${shaded(fillet, "pw-ring")}
-  ${shaded(collar, "pw-ring")}
-  <ellipse cx="206" cy="197" rx="78" ry="13" fill="url(#pw-contact)" clip-path="url(#pw-collar-clip)"/>
-  <ellipse cx="146" cy="199" rx="26" ry="4" fill="url(#pw-sheen)" opacity="0.8"/>
-  <circle cx="200" cy="116" r="84" fill="url(#pw-ball)"/>
-  <circle cx="200" cy="116" r="84" fill="url(#pw-ball-rim)"/>
-  <ellipse cx="166" cy="82" rx="30" ry="19" transform="rotate(-30 166 82)" fill="url(#pw-gloss)" class="pw-spec"/>
-</svg>`;
+const majority = (counts: number[]) => counts.indexOf(Math.max(...counts));
+
+for (let row = 0; row < ROWS; row++) {
+  let run: { tone: number; from: number } | undefined;
+  const flush = (col: number) => {
+    if (run && run.tone > 0)
+      rects[run.tone]?.push([
+        run.from * CW,
+        row * CH,
+        (col - run.from) * CW,
+        CH,
+      ]);
+    run = undefined;
+  };
+  for (let col = 0; col < COLS; col++) {
+    const samples: number[][] = [];
+    const total = [0, 0, 0, 0];
+    for (let j = 0; j < SY; j++) {
+      const line: number[] = [];
+      for (let i = 0; i < SX; i++) {
+        const t = tone(
+          col * CW + ((i + 0.5) * CW) / SX,
+          row * CH + ((j + 0.5) * CH) / SY,
+        );
+        line.push(t);
+        total[t] = (total[t] ?? 0) + 1;
+      }
+      samples.push(line);
+    }
+    const whole = majority(total);
+    let best = {
+      error: SX * SY - (total[whole] ?? 0),
+      split: undefined as
+        | undefined
+        | { vertical: boolean; k: number; a: number; b: number },
+    };
+    for (const vertical of [false, true]) {
+      for (let k = 2; k < 7; k++) {
+        const a = [0, 0, 0, 0];
+        const b = [0, 0, 0, 0];
+        for (let j = 0; j < SY; j++)
+          for (let i = 0; i < SX; i++) {
+            const first = vertical ? i < k : j < k * 2;
+            const t = samples[j]?.[i] ?? 0;
+            const side = first ? a : b;
+            side[t] = (side[t] ?? 0) + 1;
+          }
+        const ta = majority(a);
+        const tb = majority(b);
+        const error = SX * SY - (a[ta] ?? 0) - (b[tb] ?? 0);
+        // A split has to earn its place over a plain cell.
+        if (ta !== tb && error + 6 < best.error)
+          best = { error, split: { vertical, k, a: ta, b: tb } };
+      }
+    }
+    if (!best.split) {
+      if (run?.tone !== whole) {
+        flush(col);
+        run = { tone: whole, from: col };
+      }
+      continue;
+    }
+    flush(col);
+    const { vertical, k, a, b } = best.split;
+    const x = col * CW;
+    const y = row * CH;
+    const cut = vertical ? (k * CW) / 8 : (k * CH) / 8;
+    if (a > 0) rects[a]?.push(vertical ? [x, y, cut, CH] : [x, y, CW, cut]);
+    if (b > 0)
+      rects[b]?.push(
+        vertical ? [x + cut, y, CW - cut, CH] : [x, y + cut, CW, CH - cut],
+      );
+  }
+  flush(COLS);
+}
+
+const path = (list: Rect[] = []) =>
+  list.map(([x, y, w, h]) => `M${x} ${y}h${w}v${h}h${-w}z`).join("");
+
+const grid = [
+  ...Array.from({ length: ROWS - 1 }, (_, i) => `M0 ${(i + 1) * CH}H${W}`),
+  ...Array.from({ length: COLS - 1 }, (_, i) => `M${(i + 1) * CW} 0V${H}`),
+].join("");
+
+export const pawnSvg = `<svg class="pawn-svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><path class="pw-base" d="${path(rects[1])}"/><path class="pw-shade" d="${path(rects[2])}"/><path class="pw-deep" d="${path(rects[3])}"/><path class="pw-grid" d="${grid}" fill="none" vector-effect="non-scaling-stroke"/></svg>`;
 
 export const pawnStage = `<div class="pawn-stage" aria-hidden="true">
-          <span class="pawn-pool"></span>
-          <span class="pawn-shadow"></span>
-          <span class="pawn-ring"></span><span class="pawn-ring pawn-ring-2"></span>
-          ${[1, 2, 3, 4, 5, 6].map((n) => `<span class="dust dust-${n}"></span>`).join("")}
           <div class="pawn">${pawnSvg}</div>
         </div>`;

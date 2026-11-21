@@ -1,19 +1,22 @@
 body {
-  background: #14110e;
-  color: #f1eadb;
+  background: #1b1f3a;
+  color: #ece6d6;
   font:
-    18px / 1.6 system-ui,
-    sans-serif;
+    16px / 1.6 ui-monospace,
+    Menlo,
+    Consolas,
+    monospace;
   max-width: 600px;
   margin: 15vh auto;
   padding: 24px;
 }
 h1 {
   font:
-    400 3rem / 1.05 Georgia,
-    serif;
-  letter-spacing: -0.02em;
+    500 2rem / 1.2 ui-monospace,
+    Menlo,
+    Consolas,
+    monospace;
 }
 a {
-  color: #e2b866;
+  color: #eaa66c;
 }

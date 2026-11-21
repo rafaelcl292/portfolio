@@ -13,7 +13,7 @@ export const chessh = {
   category: "Multiplayer chess over SSH",
   stack: ["Rust", "Tokio", "Ratatui"],
   description:
-    "A multiplayer chess server you play from your terminal. Matchmaking, persistent game history, and games against Zander — all over SSH.",
+    "A multiplayer chess server you play from your terminal. Matchmaking, persistent game history, and games against Zander, all over SSH.",
   command: "ssh -p 2222 chess.rafaelcl.com",
   host: "chess.rafaelcl.com",
   facts: [
@@ -61,7 +61,7 @@ export const earlierProjects = [
     name: "Currency scraper",
     description:
       "Scheduled currency data collection into SQLite using Python’s standard library.",
-    stack: "Python · SQLite",
+    stack: "Python, SQLite",
     repo: "scraper-coding-challenge",
   },
   {

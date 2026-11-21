@@ -2,8 +2,8 @@
 
 Portfolio and one-page English/Portuguese resumes at **https://rafaelcl.com**.
 
-Static HTML/CSS, a small TypeScript clipboard enhancement, and locally generated
-PDFs. Built with Bun and served by Nginx on an Oracle Cloud ARM64 VM. No application
+Static HTML/CSS, a small TypeScript enhancement (clipboard, theme, hero replay),
+and locally generated PDFs. Built with Bun and served by Nginx on an Oracle Cloud ARM64 VM. No application
 runtime, database, tracking, or third-party requests in production.
 
 ## Development
@@ -28,18 +28,24 @@ asset references and fails if either resume exceeds one page.
 
 - `src/content.ts`: profile, projects, and both resume languages.
 - `src/site.ts`: semantic HTML and portfolio narrative.
-- `src/style.css`: ebony-and-boxwood colour tokens (dark default, light option),
-  responsive layouts, the hero animation, reduced-motion support.
-- `src/pawn.ts`: the hero pawn, an inline SVG coloured by CSS custom properties.
+- `src/style.css`: the "refined terminal" design. Indigo ink and ivory (dark
+  default, ivory paper option) with one apricot accent, laid out on a character
+  grid: horizontal spacing in `ch`, vertical in rows, type at whole multiples.
+- `src/pawn.ts`: the hero pawn, generated on a 32 x 29 grid of character cells.
+  Each cell is one tone or two tones split at an eighth, like terminal block
+  elements. Coloured by CSS custom properties.
 - `src/monogram.ts`: the "RL" monogram outline (header, favicon, social card).
-- `src/client.ts`: clipboard and theme toggle.
+- `src/client.ts`: clipboard, theme toggle, and the hero replay button.
 - `src/theme.ts`: tiny blocking script that applies the stored theme before paint.
 - `scripts/resume.ts`: PDFs with embedded fonts, plus TXT/HTML exports.
 - `public/chessh.png`: actual screenshot from the CheSSH repository.
 
-The hero animation (a pawn lands and the text is revealed on impact) is CSS only:
-it runs once, animates transform and opacity, needs no script, and is skipped
-under `prefers-reduced-motion`. The production CSP forbids inline scripts and
+The hero animation is CSS only: the pawn falls in whole rows, its square
+lights up, the name is typed and the rest prints line by line. It runs once,
+animates transform, opacity and clip-path, needs no script, and is
+skipped under `prefers-reduced-motion`, which shows the finished composition.
+The "Drop the pawn again" button restarts it on request, including for visitors
+with reduced motion, since that is an explicit choice. The production CSP forbids inline scripts and
 styles, so keep both in the built assets.
 
 Employment facts come from the supplied resumes and the owner's corrections:
@@ -57,7 +63,7 @@ verification, and rollback. Credentials and private project source are not inclu
 
 ## Assets
 
-Fraunces, Geist, and Geist Mono are supplied by Fontsource under the SIL Open Font
-License. Their licenses are copied to the build. Liberation Sans is embedded in
-PDFs; its license is in `assets/fonts/LICENSE`. The monogram is outlined from
-Fraunces.
+Monaspace Argon and Monaspace Xenon are supplied by Fontsource under the SIL
+Open Font License. Their licenses are copied to the build. Liberation Sans is
+embedded in PDFs; its license is in `assets/fonts/LICENSE`. The monogram is
+outlined from Monaspace Xenon.

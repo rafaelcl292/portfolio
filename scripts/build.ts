@@ -2,7 +2,8 @@ import { cp, mkdir, rm } from "node:fs/promises";
 import { basename } from "node:path";
 import * as fontkit from "fontkit";
 import sharp from "sharp";
-import { monogramPath } from "../src/monogram";
+import { monogramCursor, monogramPath } from "../src/monogram";
+import { pawnSvg } from "../src/pawn";
 import { renderSite } from "../src/site";
 import { buildResumes } from "./resume";
 
@@ -12,15 +13,18 @@ await mkdir("dist/resume", { recursive: true });
 await cp("public", "dist", { recursive: true });
 await cp("public/chessh.png", "dist/assets/chessh.png");
 await rm("dist/chessh.png");
-const fonts = {
-  fraunces: ["fraunces", "fraunces-latin-opsz-normal"],
-  geist: ["geist", "geist-latin-wght-normal"],
-  "geist-mono": ["geist-mono", "geist-mono-latin-wght-normal"],
-} as const;
-for (const [name, [pkg, file]] of Object.entries(fonts)) {
-  const dir = `node_modules/@fontsource-variable/${pkg}`;
-  await cp(`${dir}/files/${file}.woff2`, `dist/assets/${name}.woff2`);
-  await cp(`${dir}/LICENSE`, `dist/assets/${name}-LICENSE.txt`);
+const fonts = [
+  ["monaspace-argon", 400],
+  ["monaspace-argon", 600],
+  ["monaspace-xenon", 500],
+] as const;
+for (const [family, weight] of fonts) {
+  const dir = `node_modules/@fontsource/${family}`;
+  await cp(
+    `${dir}/files/${family}-latin-${weight}-normal.woff2`,
+    `dist/assets/${family}-${weight}.woff2`,
+  );
+  await cp(`${dir}/LICENSE`, `dist/assets/${family}-LICENSE.txt`);
 }
 await cp("src/resume.css", "dist/assets/resume.css");
 await cp("assets/fonts/LICENSE", "dist/assets/liberation-LICENSE.txt");
@@ -54,32 +58,31 @@ await buildResumes();
 // typefaces on any machine.
 const outline = (
   file: string,
-  axes: Record<string, number>,
   value: string,
   size: number,
   x: number,
   y: number,
-  tracking = 0,
 ) => {
-  const base = fontkit.openSync(file);
-  if (!("getVariation" in base)) throw new Error(`Not a single font: ${file}`);
-  const font = base.getVariation(axes);
+  const font = fontkit.openSync(file);
+  if (!("layout" in font)) throw new Error(`Not a single font: ${file}`);
   const scale = size / font.unitsPerEm;
   let pen = x;
   let d = "";
   for (const glyph of font.layout(value).glyphs) {
     d += glyph.path.scale(scale, -scale).translate(pen, y).toSVG();
-    pen += glyph.advanceWidth * scale + tracking * size;
+    pen += glyph.advanceWidth * scale;
   }
   return { d, width: pen - x };
 };
-const serif = "dist/assets/fraunces.woff2";
-const mono = "dist/assets/geist-mono.woff2";
-const display = { wght: 370, opsz: 144 };
-const site = outline(mono, { wght: 400 }, "rafaelcl.com", 24, 0, 0);
+const display = "dist/assets/monaspace-xenon-500.woff2";
+const text = "dist/assets/monaspace-argon-400.woff2";
+const site = outline(text, "rafaelcl.com", 24, 0, 0);
+const cardPawn = pawnSvg
+  .replace("<svg ", '<svg x="840" y="92" ')
+  .replace(/width="\d+" height="\d+"/, 'width="240" height="435"');
 await sharp(
   Buffer.from(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630"><rect width="1200" height="630" fill="#14110e"/><rect x="80" y="72" width="56" height="56" rx="12" fill="#e2b866"/><path transform="translate(80 72) scale(.875)" fill="#14110e" d="${monogramPath}"/><path fill="#aba190" d="${outline(mono, { wght: 400 }, "SOFTWARE DEVELOPER / SÃO PAULO, BRAZIL", 21, 160, 108, 0.08).d}"/><path fill="#f1eadb" d="${outline(serif, display, "Rafael Coca", 132, 74, 318, -0.04).d}"/><path fill="#e2b866" d="${outline(serif, display, "Leventhal", 132, 74, 446, -0.04).d}"/><path d="M80 506H1120" stroke="#322b23"/><path fill="#f1eadb" d="${outline(mono, { wght: 400 }, "C# / .NET · React · Rust · Zig", 24, 80, 562).d}"/><path fill="#aba190" d="${outline(mono, { wght: 400 }, "rafaelcl.com", 24, 1120 - site.width, 562).d}"/></svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630"><style>.pw-base{fill:#ece6d6}.pw-shade{fill:#b3aecb}.pw-deep{fill:#7d7aa8}</style><rect width="1200" height="630" fill="#1b1f3a"/><rect x="80" y="72" width="56" height="56" fill="#ece6d6"/><g transform="translate(80 72) scale(.875)"><path fill="#1b1f3a" d="${monogramPath}"/><rect x="${monogramCursor.x}" y="${monogramCursor.y}" width="${monogramCursor.width}" height="${monogramCursor.height}" fill="#1b1f3a" opacity=".45"/></g>${cardPawn}<rect x="817.5" y="527" width="285" height="8" fill="#eaa66c"/><path d="M80 527.5H1120" stroke="#3d4372"/><path fill="#ece6d6" d="${outline(display, "Rafael Coca", 80, 76, 290).d}"/><path fill="#ece6d6" d="${outline(display, "Leventhal", 80, 76, 386).d}"/><path fill="#adb1cd" d="${outline(text, "Software developer, full-stack and backend", 24, 80, 452).d}"/><path fill="#ece6d6" d="${outline(text, "C#/.NET, React, Rust, Zig", 24, 80, 584).d}"/><path fill="#adb1cd" d="${outline(text, "rafaelcl.com", 24, 1120 - site.width, 584).d}"/></svg>`,
   ),
 )
   .png()
